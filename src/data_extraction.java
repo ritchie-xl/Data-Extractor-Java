@@ -14,7 +14,7 @@ public class data_extraction {
         String database = args[0];
         String table = args[1];
         int pathLen = args[2].length();
-        String outputFolder = (args[2].substring(pathLen -1).equals("/")) ? args[2] : (args[2] + "/") ;
+        String outputFolder = (args[2].substring(pathLen-1).equals("/")) ? args[2] : (args[2] + "/") ;
 
         String user="root";
         String password ="";
