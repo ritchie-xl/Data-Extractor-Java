@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
-import java.util.Date;
 
 /**
  * Created by ritchie on 12/9/14.
@@ -18,9 +17,10 @@ public class data_extraction {
         String table = args[1];
         String outputFolder = args[2];
         */
-        
-        // Following variables are used for testing
-        String fileRecords = "/Users/ritchie/IdeaProjects/Java_ETL/out/production/Java_ETL/fileRecords";
+
+        // Following variables are used for testing and should be received from arguments
+        String fileRecords = "/Users/ritchie/IdeaProjects/Java_ETL/data/fileRecords";
+        String outputFolder = "/Users/ritchie/IdeaProjects/Java_ETL/output/";//TODO: decide if the last character is '/'
         String database = "test";
         String table = "messages";
 
@@ -36,10 +36,10 @@ public class data_extraction {
         Calendar calender = Calendar.getInstance();
         String currentYear = Integer.toString(calender.get(Calendar.YEAR));
         String currentDayOfYear = Integer.toString(calender.get(Calendar.DAY_OF_YEAR));
-        String newFilePath="";
+        String newFilePath=outputFolder;
 
         String line;
-        String last=null;
+        String last="";
         try {
             FileReader fr = new FileReader(fileRecords);
             BufferedReader br = new BufferedReader(fr);
@@ -49,7 +49,6 @@ public class data_extraction {
 
             // Construct the file path for the file to save the data dump out from the database
             //TODO: if the new date is the first day of a year
-            //TODO: add the directory name to the file name
             String year = last.substring(0, 4);
             String day = last.substring(4, 7);
             int number = Integer.parseInt(last.substring(7, 10));
@@ -65,7 +64,9 @@ public class data_extraction {
                 newFilePath = currentYear + currentDayOfYear + "001.dat";
             }
             //Write the new file name into the file records
-            FileWriter fw = new FileWriter(fileRecords);
+            // The file records is used to save all the files that dump out from
+            // the database before.
+            FileWriter fw = new FileWriter(fileRecords,true);
             BufferedWriter bw = new BufferedWriter(fw);
             bw.write(newFilePath);
             bw.write("\n");
@@ -76,21 +77,26 @@ public class data_extraction {
             System.exit(1);
         }
 
-        //Create the connecttion to the database and dump out the file
+        //Create the connection to the database and dump out the file
+        // Create variables that will be used by jdbc connector
         Connection connect = null;
         java.sql.Statement statement = null;
         ResultSet resultSet = null;
 
+        // Connect to the database and execute the query
         try{
             Class.forName(JDBC_DRIVER);
             connect = DriverManager.getConnection(url,user,password);
             statement = connect.createStatement();
             resultSet = statement.executeQuery(query);
             System.out.println("id\t\tmessages\tcount");
+            // Create the file to save the data dump out from the database
             File file = new File(newFilePath);
             file.createNewFile();
-            FileWriter fw = new FileWriter(newFilePath);
+            FileWriter fw = new FileWriter(newFilePath,true);
             BufferedWriter bw = new BufferedWriter(fw);
+
+            // Start writing data to the file
             while(resultSet.next()){
                 String id = resultSet.getString("id");
                 String date = resultSet.getString("date");
