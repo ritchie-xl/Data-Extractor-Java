@@ -15,13 +15,12 @@ public class data_extraction {
         String table = args[1];
         int pathLen = args[2].length();
         String outputFolder = (args[2].substring(pathLen - 1).equals("/")) ? args[2] : (args[2] + "/");
+        String fileRecords = "/Users/ritchie/IdeaProjects/Java_ETL/data/fileRecords";
 
         String user = "root";
         String password = "";
 
-
         // Following variables are used for testing and should be received from arguments
-        String fileRecords = "/Users/ritchie/IdeaProjects/Java_ETL/data/fileRecords";
         /*String outputFolder = "/Users/ritchie/IdeaProjects/Java_ETL/output/";
         String database = "test";
         String table = "messages";
@@ -124,7 +123,7 @@ public class data_extraction {
         }
 
         try {
-            //Write the new file name into the file records
+            // Write the new file name into the file records
             // The file records is used to save all the files that dump out from
             // the database before.
             FileWriter fw = new FileWriter(fileRecords, true);
