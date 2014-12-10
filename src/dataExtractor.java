@@ -1,25 +1,32 @@
+import java.awt.*;
 import java.io.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.nio.file.FileAlreadyExistsException;
+import java.sql.*;
 import java.util.Calendar;
 
 /**
  * Created by ritchie on 12/9/14.
  */
-public class data_extraction {
+public class dataExtractor {
     public static void main(String[] args) throws Exception {
         /*
-        Usage: $java data_extraction [databaseName] [tableName] [dirToSaveData]
+        Usage: $java data_extraction -d [databaseName] -t [tableName] -dir [dirToSaveData] -s [sqlQuery] -f [fileQuery]
+        -u [databaseUserName] -p [databasePassword]
          */
+
+        //TODO: Handle different database system
+        //TODO: Add arguments parser
+        //TODO: Handle sql query
+        //TODO: Handle the file query
         final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
         String database = args[0];
         String table = args[1];
         int pathLen = args[2].length();
+        // check the folder path is end with '/' or not
         String outputFolder = (args[2].substring(pathLen - 1).equals("/")) ? args[2] : (args[2] + "/");
         String fileRecords = "/Users/ritchie/IdeaProjects/Java_ETL/data/fileRecords";
 
+        // Show receive from the program arguments
         String user = "root";
         String password = "";
 
@@ -52,7 +59,6 @@ public class data_extraction {
                     while ((line = br.readLine()) != null) {
                         last = line;
                     }
-
                     // Construct the file path for the file to save the data dump out from the database
                     String year = last.substring(0, 4);
                     String day = last.substring(4, 7);
@@ -79,11 +85,12 @@ public class data_extraction {
         newFilePath = outputFolder + newFileName;
 
 
-        //Create the connection to the database and dump out the file
+        // Create the connection to the database and dump out the file
         // Create variables that will be used by jdbc connector
         Connection connect = null;
         java.sql.Statement statement = null;
         ResultSet resultSet = null;
+
 
         // Connect to the database and execute the query
         try {
@@ -91,48 +98,54 @@ public class data_extraction {
             connect = DriverManager.getConnection(url, user, password);
             statement = connect.createStatement();
             resultSet = statement.executeQuery(query);
-//            System.out.println("id\t\tmessages\tcount");
+            // Find out how many columns in the table
+            ResultSetMetaData meta = resultSet.getMetaData();
+            int numColumn = meta.getColumnCount();
             // Create the file to save the data dump out from the database
             File file = new File(newFilePath);
             file.createNewFile();
             FileWriter fw = new FileWriter(newFilePath, true);
             BufferedWriter bw = new BufferedWriter(fw);
 
+            try {
+                // Write the new file name into the file records
+                // The file records is used to save all the files that dump out from
+                // the database before.
+                FileWriter fwRecords = new FileWriter(fileRecords, true);
+                BufferedWriter bwRecords = new BufferedWriter(fwRecords);
+                bwRecords.write(newFileName);
+                bwRecords.write("\n");
+                bwRecords.close();
+            } catch (Exception e) {
+                throw e;
+            }
+
             // Start writing data to the file
-            while (resultSet.next()) {
-                String id = resultSet.getString("id");
-                String date = resultSet.getString("date");
-                String count = resultSet.getString("count");
-                String newLine = id + "," + date + "," + count;
-//                System.out.println(id+"\t"+date+"\t"+count);
+            //while (!resultSet.isLast()) {
+            System.out.println("Reading data from database, please wait....");
+            while(resultSet.next()){
+                // Read all the data from the table and write it into the data file
+                String newLine = "";
+                for(int i = 1;i<numColumn;i++){
+                    newLine = newLine + resultSet.getString(i) + ",";
+                }
+                newLine = newLine + resultSet.getString(numColumn) + "\n";
+
                 try {
                     bw.write(newLine);
-                    bw.write("\n");
                 } catch (FileNotFoundException e) {
-                    System.out.print(e);
-                    System.exit(1);
+                   throw e;
                 }
             }
             bw.close();
         } catch (SQLException e) {
             throw e;
-        } finally {
+        } finally{
             resultSet.close();
             statement.close();
             connect.close();
         }
 
-        try {
-            // Write the new file name into the file records
-            // The file records is used to save all the files that dump out from
-            // the database before.
-            FileWriter fw = new FileWriter(fileRecords, true);
-            BufferedWriter bw = new BufferedWriter(fw);
-            bw.write(newFileName);
-            bw.write("\n");
-            bw.close();
-        } catch (Exception e) {
-            throw e;
-        }
+
     }
 }
