@@ -10,6 +10,9 @@ import java.util.Calendar;
  */
 public class data_extraction {
     public static void main(String[] args) throws Exception {
+        /*
+        Usage: $java data_extraction [databaseName] [tableName] [dirToSaveData]
+         */
         final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
         String database = args[0];
         String table = args[1];
@@ -21,16 +24,13 @@ public class data_extraction {
         String password = "";
 
         // Following variables are used for testing and should be received from arguments
-        /*String outputFolder = "/Users/ritchie/IdeaProjects/Java_ETL/output/";
-        String database = "test";
-        String table = "messages";
-        */
         // Construct the url for jdbc connector to connect to the database
         String url = "jdbc:mysql://localhost/" + database;
 
         // Query to read all the content from the assigned table
         String query = "select * from " + table;
 
+        // Get the day of year in the current date when the application is called
         Calendar calender = Calendar.getInstance();
         String currentYear = Integer.toString(calender.get(Calendar.YEAR));
         String currentDayOfYear = Integer.toString(calender.get(Calendar.DAY_OF_YEAR));
